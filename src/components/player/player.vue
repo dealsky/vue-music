@@ -24,6 +24,17 @@
               </div>
             </div>
           </div>
+          <div class="middle-r" ref="lyricList">
+            <div class="lyric-wrapper">
+              <div v-if="currentLyric">
+                <p ref="lyricLine"
+                   class="text"
+                   :class="{'current': index === currentLineNum}"
+                   v-for="(line, index) in currentLyric.lines"
+                   :key="index">{{ line.txt }}</p>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="bottom">
           <div class="progress-wrapper">
@@ -88,6 +99,7 @@
   import ProgressCircle from 'base/progress-circle/progress-circle'
   import {playMode} from 'common/js/config'
   import {shuffle} from 'common/js/util'
+  import Lyric from 'lyric-parser'
 
   const transform = prefixStyle('transform')
 
@@ -96,7 +108,10 @@
       return {
         songReady: false,
         currentTime: 0,
-        radius: 32
+        radius: 32,
+        currentLyric: null,
+        // 当前歌词所在的行
+        currentLineNum: 0
       }
     },
     computed: {
@@ -259,6 +274,20 @@
         this.$refs.currentTime = 0
         this.$refs.audio.play()
       },
+      getLyric() {
+        this.currentSong.getLyric().then((lyric) => {
+          this.$nextTick(() => {
+            this.currentLyric = new Lyric(lyric, this.handleLyric)
+            if (this.playing) {
+              this.currentLyric.play()
+            }
+          })
+        })
+      },
+      handleLyric({lineNum, txt}) {
+        console.log(lineNum, txt)
+        this.currentLineNum = lineNum
+      },
       _pad(num, n = 2) {
         let len = num.toString().length
         while (len < n) {
@@ -295,6 +324,7 @@
         }
         this.$nextTick(() => {
           this.$refs.audio.play()
+          this.getLyric()
         })
       },
       playing(newPlaying) {
@@ -397,6 +427,23 @@
                 width: 100%
                 height: 100%
                 border-radius: 50%
+        .middle-r
+          display: inline-block
+          vertical-align: top
+          width: 100%
+          height: 100%
+          overflow: hidden
+          .lyric-wrapper
+            width: 80%
+            margin: 0 auto
+            overflow: hidden
+            text-align: center
+            .text
+              line-height: 32px
+              color: $color-text-l
+              font-size: $font-size-medium
+              &.current
+                color: $color-text
       .bottom
         position: absolute
         bottom: 50px

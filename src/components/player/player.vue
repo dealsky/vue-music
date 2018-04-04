@@ -16,15 +16,21 @@
           <h1 class="title">{{ currentSong.name }}</h1>
           <h2 class="subtitle">{{ currentSong.singer }}</h2>
         </div>
-        <div class="middle">
+        <div class="middle"
+             @touchstart.prevent="middleTouchStart"
+             @touchmove="middleTouchMove"
+             @touchend="middleTouchEnd">
           <div class="middle-l">
             <div class="cd-wrapper" ref="cdWrapper">
               <div class="cd" :class="cdCls">
                 <img class="image" :src="currentSong.image">
               </div>
             </div>
+            <div class="playing-lyric-wrapper">
+              <div class="playing-lyric">tt</div>
+            </div>
           </div>
-          <div class="middle-r" ref="lyricList">
+          <scroll class="middle-r" ref="lyricList" :data="currentLyric && currentLyric.lines">
             <div class="lyric-wrapper">
               <div v-if="currentLyric">
                 <p ref="lyricLine"
@@ -34,9 +40,13 @@
                    :key="index">{{ line.txt }}</p>
               </div>
             </div>
-          </div>
+          </scroll>
         </div>
         <div class="bottom">
+          <div class="dot-wrapper">
+            <span class="dot" :class="{'active': currentShow === 'cd'}"></span>
+            <span class="dot" :class="{'active': currentShow === 'lyric'}"></span>
+          </div>
           <div class="progress-wrapper">
             <span class="time time-l">{{ format(currentTime) }}</span>
             <div class="progress-bar-wrapper">
@@ -100,6 +110,7 @@
   import {playMode} from 'common/js/config'
   import {shuffle} from 'common/js/util'
   import Lyric from 'lyric-parser'
+  import Scroll from 'base/scroll/scroll'
 
   const transform = prefixStyle('transform')
 
@@ -111,7 +122,8 @@
         radius: 32,
         currentLyric: null,
         // 当前歌词所在的行
-        currentLineNum: 0
+        currentLineNum: 0,
+        currentShow: 'cd'
       }
     },
     computed: {
@@ -142,6 +154,9 @@
         'mode',
         'sequenceList'
       ])
+    },
+    created() {
+      this.touch = {}
     },
     methods: {
       back() {
@@ -285,8 +300,35 @@
         })
       },
       handleLyric({lineNum, txt}) {
-        console.log(lineNum, txt)
         this.currentLineNum = lineNum
+        if (lineNum > 5) {
+          let lineEl = this.$refs.lyricLine[lineNum - 5]
+          this.$refs.lyricList.scrollToElement(lineEl, 1000)
+        } else {
+          this.$refs.lyricList.scrollTo(0, 0, 1000)
+        }
+      },
+      middleTouchStart(e) {
+        this.touch.initiated = true
+        const touch = e.touches[0]
+        this.touch.startX = touch.pageX
+        this.touch.startY = touch.pageY
+      },
+      middleTouchMove(e) {
+        if (!this.touch.initiated) {
+          return
+        }
+        const touch = e.touches[0]
+        const deltaX = touch.pageX - this.touch.startX
+        const deltaY = touch.pageY - this.touch.startY
+        if (Math.abs(deltaY) > Math.abs(deltaX)) {
+          return
+        }
+        const left = this.currentShow === 'cd' ? 0 : -window.innerWidth
+        const width = Math.min(0, Math.max(-window.innerWidth, left + deltaX))
+        this.$refs.lyricList.$el.style[transform] = `translate3d(${width}px, 0, 0)`
+      },
+      middleTouchEnd(e) {
       },
       _pad(num, n = 2) {
         let len = num.toString().length
@@ -335,6 +377,7 @@
       }
     },
     components: {
+      Scroll,
       ProgressBar,
       ProgressCircle
     }
@@ -427,6 +470,16 @@
                 width: 100%
                 height: 100%
                 border-radius: 50%
+          .playing-lyric-wrapper
+            width: 80%
+            margin: 30px auto 0 auto
+            overflow: hidden
+            text-align: center
+            .playing-lyric
+              height: 20px
+              line-height: 20px
+              font-size: $font-size-medium
+              color: $color-text-l
         .middle-r
           display: inline-block
           vertical-align: top
@@ -448,11 +501,26 @@
         position: absolute
         bottom: 50px
         width: 100%
+        .dot-wrapper
+          text-align: center
+          font-size: 0
+          .dot
+            display: inline-block
+            vertical-align: middle
+            margin: 0 4px
+            width: 8px
+            height: 8px
+            border-radius: 50%
+            background: $color-text-l
+            &.active
+              width: 20px
+              border-radius: 5px
+              background: $color-text-ll
         .progress-wrapper
           display: flex
           align-items: center
           width: 80%
-          margin: 0px auto
+          margin: 0 auto
           padding: 10px 0
           .time
             color: $color-text

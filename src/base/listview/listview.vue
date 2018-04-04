@@ -102,6 +102,9 @@
       selectItem(item) {
         this.$emit('select', item)
       },
+      refresh() {
+        this.$refs.listview.refresh()
+      },
       _scrollTo(index) {
         if (!index && index !== 0) {
           return

@@ -2,7 +2,7 @@
   <div class="rank" ref="rank">
     <scroll class="toplist" :data="topList" ref="scroll">
       <ul>
-        <li class="item" v-for="item in topList" :key="item.id">
+        <li @click="selectItem(item)" class="item" v-for="item in topList" :key="item.id">
           <div class="icon">
             <img width="100" height="100" v-lazy="item.picUrl">
           </div>
@@ -18,7 +18,7 @@
         <loading></loading>
       </div>
     </scroll>
-    <!--<router-view></router-view>-->
+    <router-view></router-view>
   </div>
 </template>
 
@@ -28,6 +28,7 @@
   import Scroll from 'base/scroll/scroll'
   import Loading from 'base/loading/loading'
   import {playListMixin} from 'common/js/mixin'
+  import {mapMutations} from 'vuex'
 
   export default {
     mixins: [playListMixin],
@@ -45,13 +46,22 @@
         this.$refs.rank.style.bottom = bottom
         this.$refs.scroll.refresh()
       },
+      selectItem(item) {
+        this.$router.push({
+          path: `/rank/${item.id}`
+        })
+        this.setTopList(item)
+      },
       _getTopList() {
         getTopList().then((res) => {
           if (res.code === ERR_OK) {
             this.topList = res.data.topList
           }
         })
-      }
+      },
+      ...mapMutations({
+        setTopList: 'SET_TOP_LIST'
+      })
     },
     components: {
       Scroll,

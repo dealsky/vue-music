@@ -28,6 +28,10 @@
       pullup: {
         type: Boolean,
         default: false
+      },
+      pulldown: {
+        type: Boolean,
+        default: false
       }
     },
     mounted() {
@@ -56,6 +60,18 @@
           this.scroll.on('scrollEnd', () => {
             if (this.scroll.y <= (this.scroll.maxScrollY + 50)) {
               this.$emit('scrollToEnd')
+            }
+          })
+        }
+
+        if (this.pulldown) {
+          this.scroll.on('scroll', () => {
+            this.$emit('loading', this.scroll.y)
+          })
+
+          this.scroll.on('touchEnd', () => {
+            if (this.scroll.y > 50) {
+              this.$emit('refresh')
             }
           })
         }

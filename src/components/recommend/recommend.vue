@@ -1,6 +1,12 @@
 <template>
   <div class="recommend" ref="recommend">
-    <scroll ref="scroll" class="recommend-content" :data="distList">
+    <loading class="top-loading" v-show="refresh" title=""></loading>
+    <scroll ref="scroll"
+            class="recommend-content"
+            :data="distList"
+            :pulldown="pulldown"
+            @loading="loading"
+            @refresh="refreshPage">
       <div>
         <div v-if="recommends.length" class="slider-wrapper">
           <slider>
@@ -48,7 +54,9 @@
     data() {
       return {
         recommends: [],
-        distList: []
+        distList: [],
+        pulldown: true,
+        refresh: false
       }
     },
     created() {
@@ -66,6 +74,22 @@
           path: `/recommend/${item.dissid}`
         })
         this.setDisc(item)
+      },
+      loading(topY) {
+        if (topY > 50) {
+          this.refresh = true
+        } else {
+          this.refresh = false
+        }
+      },
+      refreshPage() {
+        this.refresh = false
+        this.recommends = []
+        this.distList = []
+        setTimeout(() => {
+          this._getRecommend()
+          this._getDistList()
+        }, 600)
       },
       _getRecommend() {
         getRecommend().then((res) => {
@@ -109,6 +133,9 @@
     width: 100%
     top: 88px
     bottom: 0
+    .top-loading
+      position: absolute
+      top: 0
     .recommend-content
       height: 100%
       overflow: hidden

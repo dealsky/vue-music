@@ -34,7 +34,7 @@
         this.query = query
       },
       blur() {
-        this.$ref.query.blur()
+        this.$refs.query.blur()
       }
     }
   }

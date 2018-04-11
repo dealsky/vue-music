@@ -14,7 +14,7 @@
             <i class="icon-back"></i>
           </div>
           <h1 class="title">{{ currentSong.name }}</h1>
-          <h2 class="subtitle">{{ currentSong.singer }}</h2>
+          <h2 class="subtitle" v-html="currentSong.singer"></h2>
         </div>
         <div class="middle"
              @touchstart.prevent="middleTouchStart"
@@ -82,7 +82,7 @@
         </div>
         <div class="text">
           <h2 class="name">{{ currentSong.name }}</h2>
-          <p class="desc">{{ currentSong.singer }}</p>
+          <p class="desc" v-html="currentSong.singer"></p>
         </div>
         <div class="control">
           <progress-circle :radius="32" :percent="percent">

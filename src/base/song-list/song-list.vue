@@ -63,12 +63,10 @@
       height: 64px
       font-size: $font-size-medium
       .rank
-        position: relative
-        top: 0
         flex: 0 0 25px
         width: 25px
         margin-right: 30px
-        text-aligh: center
+        text-align: center
         .icon
           display: inline-block
           width: 25px

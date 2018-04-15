@@ -6,15 +6,27 @@
         <div class="close" @click="hide">
           <i class="icon-close"></i>
         </div>
-        <div class="search-box-wrapper">
-          <search-box @query="onQueryChange" placeholder="搜索歌曲"></search-box>
+      </div>
+      <div class="search-box-wrapper">
+        <search-box @query="onQueryChange" placeholder="搜索歌曲"></search-box>
+      </div>
+      <div class="shortcut" v-show="!query">
+        <switches :switches="switches" :currentIndex="currentIndex" @switch="switchItem"></switches>
+        <div class="list-wrapper">
+          <scroll ref="songList" class="list-scroll" v-show="currentIndex === 0" :data="playHistory">
+            <div class="list-inner">
+              <song-list :songs="playHistory"></song-list>
+            </div>
+          </scroll>
+          <scroll class="list-scroll" v-show="currentIndex === 1">
+            <div class="list-inner">
+              <search-list :searches="searchHistory"></search-list>
+            </div>
+          </scroll>
         </div>
-        <div class="shortcut" v-show="!query">
-          <switches :switches="switches" :currentIndex="currentIndex" @switch="switchItem"></switches>
-        </div>
-        <div class="search-result" v-show="query">
-          <suggest :query="query" :showSinger="showSinger" @select="selectSuggest" @listScroll="blurInput"></suggest>
-        </div>
+      </div>
+      <div class="search-result" v-show="query">
+        <suggest :query="query" :showSinger="showSinger" @select="selectSuggest" @listScroll="blurInput"></suggest>
       </div>
     </div>
   </transition>
@@ -25,6 +37,10 @@
   import Suggest from 'components/suggest/suggest'
   import {searchMixin} from 'common/js/mixin'
   import Switches from 'base/switches/switches'
+  import Scroll from 'base/scroll/scroll'
+  import {mapGetters} from 'vuex'
+  import SongList from 'base/song-list/song-list'
+  import SearchList from 'base/search-list/search-list'
 
   export default {
     mixins: [searchMixin],
@@ -39,9 +55,20 @@
         ]
       }
     },
+    computed: {
+      ...mapGetters([
+        'playHistory',
+        'searchHistory'
+      ])
+    },
     methods: {
       show() {
         this.showFlag = true
+        setTimeout(() => {
+          if (this.currentIndex === 0) {
+            this.$refs.songList.refresh()
+          }
+        }, 20)
       },
       hide() {
         this.showFlag = false
@@ -54,9 +81,12 @@
       }
     },
     components: {
+      SearchList,
+      SongList,
       Suggest,
       SearchBox,
-      Switches
+      Switches,
+      Scroll
     }
   }
 </script>
@@ -93,7 +123,6 @@
           padding: 12px
           font-size: 20px
           color: $color-theme
-
     .search-box-wrapper
       margin: 20px
     .shortcut

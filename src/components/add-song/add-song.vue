@@ -8,19 +8,19 @@
         </div>
       </div>
       <div class="search-box-wrapper">
-        <search-box @query="onQueryChange" placeholder="搜索歌曲"></search-box>
+        <search-box ref="searchBox" @query="onQueryChange" placeholder="搜索歌曲"></search-box>
       </div>
       <div class="shortcut" v-show="!query">
         <switches :switches="switches" :currentIndex="currentIndex" @switch="switchItem"></switches>
         <div class="list-wrapper">
-          <scroll ref="songList" class="list-scroll" v-show="currentIndex === 0" :data="playHistory">
+          <scroll ref="songList" class="list-scroll" v-if="currentIndex === 0" :data="playHistory">
             <div class="list-inner">
               <song-list :songs="playHistory" @select="selectSong"></song-list>
             </div>
           </scroll>
-          <scroll class="list-scroll" v-show="currentIndex === 1">
+          <scroll ref="searchList" class="list-scroll" v-if="currentIndex === 1">
             <div class="list-inner">
-              <search-list :searches="searchHistory"></search-list>
+              <search-list :searches="searchHistory" @select="addQuery" @delete="deleteSearchHistory"></search-list>
             </div>
           </scroll>
         </div>
@@ -28,6 +28,12 @@
       <div class="search-result" v-show="query">
         <suggest :query="query" :showSinger="showSinger" @select="selectSuggest" @listScroll="blurInput"></suggest>
       </div>
+      <top-tip ref="topTip">
+        <div class="tip-title">
+          <i class="icon-ok"></i>
+          <span class="text">1首歌曲已经添加到播放队列</span>
+        </div>
+      </top-tip>
     </div>
   </transition>
 </template>
@@ -42,6 +48,7 @@
   import SongList from 'base/song-list/song-list'
   import SearchList from 'base/search-list/search-list'
   import Song from 'common/js/song'
+  import TopTip from 'base/top-tip/top-tip'
 
   export default {
     mixins: [searchMixin],
@@ -68,6 +75,8 @@
         setTimeout(() => {
           if (this.currentIndex === 0) {
             this.$refs.songList.refresh()
+          } else {
+            this.$refs.searchList.refresh()
           }
         }, 20)
       },
@@ -76,6 +85,7 @@
       },
       selectSuggest() {
         this.saveSearch()
+        this.showTip()
       },
       switchItem(index) {
         this.currentIndex = index
@@ -83,7 +93,11 @@
       selectSong(song, index) {
         if (index !== 0) {
           this.insertSong(new Song(song))
+          this.showTip()
         }
+      },
+      showTip() {
+        this.$refs.topTip.show()
       },
       ...mapActions([
         'insertSong'
@@ -95,7 +109,8 @@
       Suggest,
       SearchBox,
       Switches,
-      Scroll
+      Scroll,
+      TopTip
     }
   }
 </script>
